@@ -151,7 +151,7 @@ for line in "${source[@]}"; do
 	fi
 done
 
-if [[ $IS_DARWIN -eq 1]]; then
+if [[ $IS_DARWIN -eq 1 ]]; then
     # on macos, all the \ ansi escapes are breaking. dunno why yet.
     printf '%s' "${new_source}" > "src/.Ity_tmp_generated.cpp"
 else
