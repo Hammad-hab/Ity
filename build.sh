@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+# 
 RESET=$'\033[0m'
 BOLD=$'\033[1m'
 BLACK=$'\x1B[30m'
@@ -149,10 +151,12 @@ for line in "${source[@]}"; do
 	fi
 done
 
-echo "${new_source}" > "src/.Ity_tmp_generated.cpp"
-
-
-
+if [[ $IS_DARWIN -eq 1]]; then
+    # on macos, all the \ ansi escapes are breaking. dunno why yet.
+    printf '%s' "${new_source}" > "src/.Ity_tmp_generated.cpp"
+else
+    echo "${new_source}" > "src/.Ity_tmp_generated.cpp"
+fi
 
 # Run build process...
 
