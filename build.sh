@@ -6,7 +6,20 @@ GREEN=$'\x1B[32m'
 ORANGE=$'\x1B[33m'
 
 BIN_SIZE_LIMIT=150000
+IS_DARWIN=0
+IS_ZSH=0
 COMMON_BUILD_ARGS="-std=c++26 -Wall -flto=4 -fno-exceptions -fno-rtti -fno-unwind-tables -fno-asynchronous-unwind-tables -fgcse-las -fno-plt -Wl,--gc-sections -Wl,--build-id=none"
+
+if [[ "$(uname -s)" == "Darwin" ]]; then
+    IS_DARWIN=1
+    COMMON_BUILD_ARGS="-std=c++26 -Wall -fno-exceptions -fno-rtti -fno-unwind-tables -fno-asynchronous-unwind-tables -fgcse-las -fno-plt -Wl,--gc-sections -Wl,--build-id=none"
+    if [ -n "$ZSH_VERSION" ]; then
+        IS_ZSH=1
+    fi
+else 
+    IS_DARWIN=0
+fi
+
 
 DO_TEST=0
 DEBUG=0
@@ -20,9 +33,18 @@ OPTIM_size="-Os -finline-limit=0"
 
 LINKS=".Ity_tmp_generated.cpp -o ity.o Main.cpp -o ity.bin"
 
-
 # Parse "LIBRARIES" file.
-readarray -t LibrariesFile <<< "$(cat BuildWithLibs.txt)"
+if [[ $IS_ZSH -eq 0 ]]; then
+    # Macos Bash is too old, doesn't support readarray
+    LibrariesFile=()
+    
+    while IFS= read -r line; do
+        LibrariesFile+=("$line")
+    done < BuildWithLibs.txt
+else
+    readarray -t LibrariesFile <<< "$(cat BuildWithLibs.txt)"
+fi
+
 LibNames=()
 for line in "${LibrariesFile[@]}"; do
 	# Skip lines without "." prefix.
@@ -99,7 +121,19 @@ fi
 
 
 # Generate new source file with library definitons inserted...
-readarray -t source <<< "$(cat src/Ity.cpp)"
+
+if [[ $IS_ZSH -eq 0 ]]; then
+    # Macos Bash is too old, doesn't support readarray
+    source=()
+    
+    while IFS= read -r line; do
+        source+=("$line")
+    done < src/Ity.cpp
+else
+    readarray -t source <<< "$(cat src/Ity.cpp)"
+fi
+
+
 new_source=""
 for line in "${source[@]}"; do
 	new_source+=${line}$'\n'
